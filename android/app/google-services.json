@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "28049305285",
+    "project_id": "vision-system-bc8ba",
+    "storage_bucket": "vision-system-bc8ba.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:28049305285:android:34e6028cbb8402eda78aac",
+        "android_client_info": {
+          "package_name": "com.example.ai_vision_system"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfi9_A3H5qJErVIsRJe8SYavor0-KAdvs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
