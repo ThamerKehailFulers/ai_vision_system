@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:28049305285:android:34e6028cbb8402eda78aac",
+        "mobilesdk_app_id": "1:28049305285:android:ac9bb925aa2ff86ba78aac",
         "android_client_info": {
-          "package_name": "com.example.ai_vision_system"
+          "package_name": "com.fulers.vision"
         }
       },
       "oauth_client": [],

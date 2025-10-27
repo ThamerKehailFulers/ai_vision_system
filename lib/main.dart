@@ -1,11 +1,16 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'firebase_options.dart';
+import 'core/services/notification_service.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/auth/presentation/widgets/auth_wrapper.dart';
+import 'firebase_options.dart';
+
+// Global navigator key for navigation from anywhere
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,8 +25,17 @@ void main() async {
     );
     print('Firebase initialized successfully');
 
-    // Add a small delay to ensure Firebase is fully ready
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Set up background message handler
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+    // Initialize notification service
+    await NotificationService().initialize();
+    print('Notification service initialized');
+
+    // Subscribe to default topics (optional)
+    await NotificationService().subscribeToTopic('all_users');
+    await NotificationService().subscribeToTopic('detections');
+    print('Subscribed to notification topics');
   } catch (e) {
     print('Firebase initialization error: $e');
     // Continue running the app even if Firebase fails to initialize
@@ -47,6 +61,7 @@ class AIVisionSystemApp extends StatelessWidget {
       child: MaterialApp(
         title: 'AI Vision System',
         debugShowCheckedModeBanner: false,
+        navigatorKey: navigatorKey, // Add navigator key for notification navigation
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
             seedColor: Colors.blue,

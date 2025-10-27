@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../home/presentation/pages/home_page.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 
@@ -58,6 +59,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 content: Text('Account created successfully!'),
                 backgroundColor: Colors.green,
               ),
+            );
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => HomePage()),
             );
           }
         },

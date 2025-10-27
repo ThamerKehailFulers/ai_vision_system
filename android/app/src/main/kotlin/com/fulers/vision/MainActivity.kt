@@ -1,4 +1,4 @@
-package com.example.ai_vision_system
+package com.fulers.vision
 
 import io.flutter.embedding.android.FlutterActivity
 

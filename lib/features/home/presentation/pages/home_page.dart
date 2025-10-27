@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
 import '../cubit/navigation_cubit.dart';
 import '../../../dashboard/presentation/pages/dashboard_page.dart';
 import '../../../camera/presentation/pages/camera_page.dart';
@@ -7,6 +8,7 @@ import '../../../detection/presentation/pages/detection_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 import '../../../detection/presentation/cubit/detection_cubit.dart';
 import '../../../detection/data/repositories/detection_repository_impl.dart';
+import '../../../detection/data/datasources/detection_remote_data_source.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -34,9 +36,16 @@ class _HomePageContent extends StatelessWidget {
               DashboardPage(),
               CameraPage(),
               BlocProvider(
-                create: (context) =>
-                    DetectionCubit(DetectionRepositoryImpl())..loadDetections(),
-                child: DetectionPage(),
+                create: (context) {
+                  final remoteDataSource = DetectionRemoteDataSourceImpl(
+                    client: http.Client(),
+                  );
+                  final repository = DetectionRepositoryImpl(
+                    remoteDataSource: remoteDataSource,
+                  );
+                  return DetectionCubit(repository)..loadDetections();
+                },
+                child: const DetectionPage(),
               ),
               ProfilePage(),
             ],

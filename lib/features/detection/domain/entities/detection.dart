@@ -13,6 +13,10 @@ class Detection extends Equatable {
   final String className;
   final DetectionStatus status;
   final String? description;
+  final String? severity;
+  final int? duration;
+  final String? location;
+  final String? zone;
 
   const Detection({
     required this.id,
@@ -23,6 +27,10 @@ class Detection extends Equatable {
     required this.className,
     required this.status,
     this.description,
+    this.severity,
+    this.duration,
+    this.location,
+    this.zone,
   });
 
   @override
@@ -35,6 +43,10 @@ class Detection extends Equatable {
     className,
     status,
     description,
+    severity,
+    duration,
+    location,
+    zone,
   ];
 
   Detection copyWith({
@@ -46,6 +58,10 @@ class Detection extends Equatable {
     String? className,
     DetectionStatus? status,
     String? description,
+    String? severity,
+    int? duration,
+    String? location,
+    String? zone,
   }) {
     return Detection(
       id: id ?? this.id,
@@ -56,6 +72,10 @@ class Detection extends Equatable {
       className: className ?? this.className,
       status: status ?? this.status,
       description: description ?? this.description,
+      severity: severity ?? this.severity,
+      duration: duration ?? this.duration,
+      location: location ?? this.location,
+      zone: zone ?? this.zone,
     );
   }
 

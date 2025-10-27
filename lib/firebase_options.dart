@@ -48,17 +48,17 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyDObXhqJDMViVqB6P8Fbh6IqrD2BbhqucE',
-    appId: '1:28049305285:web:70000063a05776c4a78aac',
+    appId: '1:28049305285:web:c9996c1967e8ab11a78aac',
     messagingSenderId: '28049305285',
     projectId: 'vision-system-bc8ba',
     authDomain: 'vision-system-bc8ba.firebaseapp.com',
     storageBucket: 'vision-system-bc8ba.firebasestorage.app',
-    measurementId: 'G-MZ9HWR1CEN',
+    measurementId: 'G-CG5K3T2D1B',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDfi9_A3H5qJErVIsRJe8SYavor0-KAdvs',
-    appId: '1:28049305285:android:34e6028cbb8402eda78aac',
+    appId: '1:28049305285:android:ac9bb925aa2ff86ba78aac',
     messagingSenderId: '28049305285',
     projectId: 'vision-system-bc8ba',
     storageBucket: 'vision-system-bc8ba.firebasestorage.app',
@@ -66,10 +66,10 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDAr3VQjlvYP-n0KW_uYBoGE3uGVstyRtw',
-    appId: '1:28049305285:ios:9910a783ff304c61a78aac',
+    appId: '1:28049305285:ios:5ad44249046813fda78aac',
     messagingSenderId: '28049305285',
     projectId: 'vision-system-bc8ba',
     storageBucket: 'vision-system-bc8ba.firebasestorage.app',
-    iosBundleId: 'com.example.aiVisionSystem',
+    iosBundleId: 'com.fulers.vision',
   );
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
+import '../../data/datasources/camera_remote_data_source.dart';
+import '../../data/repositories/camera_repository_impl.dart';
 import '../cubit/camera_cubit.dart';
 import '../widgets/camera_grid_view.dart';
 
@@ -9,7 +12,15 @@ class CameraPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => CameraCubit()..loadCameraStreams(),
+      create: (context) {
+        final remoteDataSource = CameraRemoteDataSourceImpl(
+          client: http.Client(),
+        );
+        final repository = CameraRepositoryImpl(
+          remoteDataSource: remoteDataSource,
+        );
+        return CameraCubit(repository)..loadCameraStreams();
+      },
       child: const _CameraPageContent(),
     );
   }

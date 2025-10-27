@@ -1,82 +1,38 @@
 import '../../domain/entities/detection.dart';
 import '../../domain/repositories/detection_repository.dart';
+import '../datasources/detection_remote_data_source.dart';
 
 class DetectionRepositoryImpl implements DetectionRepository {
-  // Mock data for demonstration - in real app this would come from API/database
-  final List<Detection> _mockDetections = [
-    Detection(
-      id: '1',
-      type: DetectionType.person,
-      camera: 'cam-1',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-      confidence: 0.89,
-      className: 'person',
-      status: DetectionStatus.acknowledged,
-    ),
-    Detection(
-      id: '2',
-      type: DetectionType.smoke,
-      camera: 'cam-2',
-      timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-      confidence: 0.94,
-      className: 'smoke',
-      status: DetectionStatus.acknowledged,
-    ),
-    Detection(
-      id: '3',
-      type: DetectionType.vehicle,
-      camera: 'cam-3',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 45)),
-      confidence: 0.83,
-      className: 'vehicle',
-      status: DetectionStatus.acknowledged,
-    ),
-    Detection(
-      id: '4',
-      type: DetectionType.vehicle,
-      camera: 'cam-3',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
-      confidence: 0.76,
-      className: 'vehicle',
-      status: DetectionStatus.new_,
-    ),
-    Detection(
-      id: '5',
-      type: DetectionType.fire,
-      camera: 'cam-10',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-      confidence: 0.90,
-      className: 'fire',
-      status: DetectionStatus.new_,
-    ),
-    Detection(
-      id: '6',
-      type: DetectionType.smoke,
-      camera: 'cam-9',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
-      confidence: 0.88,
-      className: 'smoke',
-      status: DetectionStatus.new_,
-    ),
-  ];
+  final DetectionRemoteDataSource remoteDataSource;
+
+  // Cache for detections to support filtering and acknowledgment
+  List<Detection> _cachedDetections = [];
+
+  DetectionRepositoryImpl({required this.remoteDataSource});
 
   @override
   Future<List<Detection>> getDetections() async {
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 500));
-    return List.from(_mockDetections);
+    try {
+      final detectionModels = await remoteDataSource.getDetections();
+      _cachedDetections = detectionModels.map((model) => model.toEntity()).toList();
+      return _cachedDetections;
+    } catch (e) {
+      throw Exception('Failed to fetch detections: ${e.toString()}');
+    }
   }
 
   @override
   Future<Detection> acknowledgeDetection(String detectionId) async {
+    // In a real app, this would make an API call to acknowledge the detection
+    // For now, we'll update the local cache
     await Future.delayed(const Duration(milliseconds: 300));
 
-    final index = _mockDetections.indexWhere((d) => d.id == detectionId);
+    final index = _cachedDetections.indexWhere((d) => d.id == detectionId);
     if (index != -1) {
-      _mockDetections[index] = _mockDetections[index].copyWith(
+      _cachedDetections[index] = _cachedDetections[index].copyWith(
         status: DetectionStatus.acknowledged,
       );
-      return _mockDetections[index];
+      return _cachedDetections[index];
     }
 
     throw Exception('Detection not found');
@@ -84,13 +40,21 @@ class DetectionRepositoryImpl implements DetectionRepository {
 
   @override
   Future<List<Detection>> getDetectionsByType(DetectionType type) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return _mockDetections.where((d) => d.type == type).toList();
+    // If cache is empty, fetch from API first
+    if (_cachedDetections.isEmpty) {
+      await getDetections();
+    }
+
+    return _cachedDetections.where((d) => d.type == type).toList();
   }
 
   @override
   Future<List<Detection>> getDetectionsByStatus(DetectionStatus status) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return _mockDetections.where((d) => d.status == status).toList();
+    // If cache is empty, fetch from API first
+    if (_cachedDetections.isEmpty) {
+      await getDetections();
+    }
+
+    return _cachedDetections.where((d) => d.status == status).toList();
   }
 }

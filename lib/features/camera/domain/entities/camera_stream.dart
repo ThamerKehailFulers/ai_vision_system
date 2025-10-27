@@ -7,6 +7,22 @@ class CameraStream extends Equatable {
   final bool isLive;
   final DateTime lastUpdate;
   final List<Detection> detections;
+  final String? location;
+  final String? zone;
+  final String? status;
+  final int? position;
+  final int? gridRow;
+  final int? gridCol;
+  final String? thumbnailUrl;
+  final String? snapshotUrl;
+  final String? primaryStreamUrl;
+  final String? hlsUrl;
+  final String? healthStatus;
+  final double? uptime;
+  final int? latency;
+  final int? activeDetections;
+  final int? totalDetectionsToday;
+  final bool? isRecording;
 
   const CameraStream({
     required this.id,
@@ -15,10 +31,49 @@ class CameraStream extends Equatable {
     required this.isLive,
     required this.lastUpdate,
     this.detections = const [],
+    this.location,
+    this.zone,
+    this.status,
+    this.position,
+    this.gridRow,
+    this.gridCol,
+    this.thumbnailUrl,
+    this.snapshotUrl,
+    this.primaryStreamUrl,
+    this.hlsUrl,
+    this.healthStatus,
+    this.uptime,
+    this.latency,
+    this.activeDetections,
+    this.totalDetectionsToday,
+    this.isRecording,
   });
 
   @override
-  List<Object> get props => [id, name, url, isLive, lastUpdate, detections];
+  List<Object?> get props => [
+        id,
+        name,
+        url,
+        isLive,
+        lastUpdate,
+        detections,
+        location,
+        zone,
+        status,
+        position,
+        gridRow,
+        gridCol,
+        thumbnailUrl,
+        snapshotUrl,
+        primaryStreamUrl,
+        hlsUrl,
+        healthStatus,
+        uptime,
+        latency,
+        activeDetections,
+        totalDetectionsToday,
+        isRecording,
+      ];
 }
 
 class Detection extends Equatable {

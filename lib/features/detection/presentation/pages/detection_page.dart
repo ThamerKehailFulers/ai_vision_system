@@ -104,37 +104,54 @@ class _FilterSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Row(
-        children: [
-          const Icon(Icons.filter_list, color: Colors.grey, size: 20),
-          const SizedBox(width: 8),
-          const Text(
-            'Filters:',
-            style: TextStyle(color: Colors.grey, fontSize: 14),
+    return BlocBuilder<DetectionCubit, DetectionState>(
+      builder: (context, state) {
+        DetectionType? selectedType;
+        DetectionStatus? selectedStatus;
+
+        if (state is DetectionLoaded) {
+          selectedType = state.selectedType;
+          selectedStatus = state.selectedStatus;
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                const Icon(Icons.filter_list, color: Colors.grey, size: 20),
+                const SizedBox(width: 8),
+                const Text(
+                  'Filters:',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+                const SizedBox(width: 12),
+                _FilterDropdown(
+                  label: 'All Types',
+                  selectedValue: selectedType,
+                  onChanged: (dynamic type) {
+                    context.read<DetectionCubit>().filterByType(
+                      type as DetectionType?,
+                    );
+                  },
+                ),
+                const SizedBox(width: 12),
+                _FilterDropdown(
+                  label: 'All Status',
+                  selectedValue: selectedStatus,
+                  isStatus: true,
+                  onChanged: (dynamic status) {
+                    context.read<DetectionCubit>().filterByStatus(
+                      status as DetectionStatus?,
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-          const SizedBox(width: 16),
-          _FilterDropdown(
-            label: 'All Types',
-            onChanged: (dynamic type) {
-              context.read<DetectionCubit>().filterByType(
-                type as DetectionType?,
-              );
-            },
-          ),
-          const SizedBox(width: 16),
-          _FilterDropdown(
-            label: 'All Status',
-            isStatus: true,
-            onChanged: (dynamic status) {
-              context.read<DetectionCubit>().filterByStatus(
-                status as DetectionStatus?,
-              );
-            },
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -142,38 +159,86 @@ class _FilterSection extends StatelessWidget {
 class _FilterDropdown extends StatelessWidget {
   final String label;
   final bool isStatus;
+  final dynamic selectedValue;
   final Function(dynamic) onChanged;
 
   const _FilterDropdown({
     required this.label,
     required this.onChanged,
+    this.selectedValue,
     this.isStatus = false,
   });
+
+  String _getDisplayText() {
+    if (selectedValue == null) {
+      return label;
+    }
+
+    if (selectedValue is DetectionType) {
+      return (selectedValue as DetectionType).name.capitalize();
+    }
+
+    if (selectedValue is DetectionStatus) {
+      final status = selectedValue as DetectionStatus;
+      return status == DetectionStatus.new_ ? 'New' : status.name.capitalize();
+    }
+
+    return label;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
+        color: selectedValue != null
+            ? const Color(0xFF1E3A5F)
+            : const Color(0xFF1A1A1A),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        border: Border.all(
+          color: selectedValue != null
+              ? Colors.blue.withValues(alpha: 0.5)
+              : Colors.grey.withValues(alpha: 0.3),
+        ),
       ),
-      child: DropdownButton<dynamic>(
-        value: null,
-        hint: Text(
-          label,
-          style: const TextStyle(color: Colors.grey, fontSize: 14),
-        ),
-        icon: const Icon(
-          Icons.keyboard_arrow_down,
-          color: Colors.grey,
-          size: 16,
-        ),
-        dropdownColor: const Color(0xFF1A1A1A),
-        underline: const SizedBox.shrink(),
-        items: isStatus ? _getStatusItems() : _getTypeItems(),
-        onChanged: onChanged,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          DropdownButton<dynamic>(
+            value: selectedValue,
+            hint: Text(
+              _getDisplayText(),
+              style: TextStyle(
+                color: selectedValue != null ? Colors.blue : Colors.grey,
+                fontSize: 14,
+                fontWeight: selectedValue != null ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+            icon: const Icon(
+              Icons.keyboard_arrow_down,
+              color: Colors.grey,
+              size: 16,
+            ),
+            dropdownColor: const Color(0xFF1A1A1A),
+            underline: const SizedBox.shrink(),
+            items: isStatus ? _getStatusItems() : _getTypeItems(),
+            onChanged: onChanged,
+          ),
+          if (selectedValue != null) ...[
+            const SizedBox(width: 4),
+            GestureDetector(
+              onTap: () => onChanged(null),
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                child: const Icon(
+                  Icons.close,
+                  size: 14,
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -257,51 +322,65 @@ class _DetectionCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(_getDetectionIcon(), color: _getIconColor(), size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    detection.displayType,
-                    style: TextStyle(
-                      color: _getIconColor(),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  if (detection.status == DetectionStatus.new_)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'New',
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(_getDetectionIcon(), color: _getIconColor(), size: 20),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        detection.displayType,
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          color: _getIconColor(),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    if (detection.status == DetectionStatus.new_)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'New',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-              Row(
+              const SizedBox(width: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.end,
                 children: [
                   TextButton(
                     onPressed: () {
                       DetectionDetailsBottomSheet.show(context, detection);
                     },
-                    style: TextButton.styleFrom(foregroundColor: Colors.blue),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
                     child: const Text('View Details'),
                   ),
-                  if (detection.status == DetectionStatus.new_) ...[
-                    const SizedBox(width: 8),
+                  if (detection.status == DetectionStatus.new_)
                     ElevatedButton(
                       onPressed: () {
                         context.read<DetectionCubit>().acknowledgeDetection(
@@ -312,13 +391,12 @@ class _DetectionCard extends StatelessWidget {
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
+                          horizontal: 12,
                           vertical: 8,
                         ),
                       ),
                       child: const Text('Acknowledge'),
                     ),
-                  ],
                 ],
               ),
             ],
@@ -326,20 +404,28 @@ class _DetectionCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              _InfoItem('Camera:', detection.camera),
-              const SizedBox(width: 24),
-              _InfoItem('Time:', _formatTime(detection.timestamp)),
+              Expanded(
+                child: _InfoItem('Camera:', detection.camera),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _InfoItem('Time:', _formatTime(detection.timestamp)),
+              ),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              _InfoItem(
-                'Confidence:',
-                '${(detection.confidence * 100).toInt()}%',
+              Expanded(
+                child: _InfoItem(
+                  'Confidence:',
+                  '${(detection.confidence * 100).toInt()}%',
+                ),
               ),
-              const SizedBox(width: 24),
-              _InfoItem('Class:', detection.className),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _InfoItem('Class:', detection.className),
+              ),
             ],
           ),
           if (detection.status == DetectionStatus.acknowledged) ...[
@@ -420,6 +506,8 @@ class _InfoItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RichText(
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
       text: TextSpan(
         children: [
           TextSpan(
