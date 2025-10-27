@@ -169,14 +169,25 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
             children: [
               Icon(Icons.phone_android, color: Colors.blue, size: 20),
               const SizedBox(width: 8),
-              const Text(
-                'Device FCM Token',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              const Expanded(
+                child: Text(
+                  'Device FCM Token',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
+              if (token == null)
+                TextButton.icon(
+                  onPressed: _retryGetToken,
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Retry'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.blue,
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 12),
@@ -190,11 +201,11 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
               children: [
                 Expanded(
                   child: Text(
-                    token ?? 'Loading...',
+                    token ?? 'Token not available yet. This is normal on iOS - tap Retry.',
                     style: TextStyle(
-                      color: Colors.grey[400],
+                      color: token != null ? Colors.grey[400] : Colors.orange[300],
                       fontSize: 12,
-                      fontFamily: 'monospace',
+                      fontFamily: token != null ? 'monospace' : null,
                     ),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
@@ -219,7 +230,9 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Use this token to send notifications to this device',
+            token != null
+                ? 'Use this token to send notifications to this device'
+                : 'On iOS, APNS token must be available first. Wait a few seconds and tap Retry.',
             style: TextStyle(
               color: Colors.grey[600],
               fontSize: 12,
@@ -228,6 +241,43 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _retryGetToken() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Retrieving FCM token...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    final token = await _notificationService.retryGetToken();
+
+    setState(() {
+      // Token will be updated in the service
+    });
+
+    if (token != null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('FCM token retrieved successfully!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not retrieve token. Please check your setup.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildSectionTitle(String title) {

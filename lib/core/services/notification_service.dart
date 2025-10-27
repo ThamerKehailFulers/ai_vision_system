@@ -30,6 +30,9 @@ class NotificationService {
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
 
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
+
   /// Initialize Firebase Cloud Messaging and Local Notifications
   Future<void> initialize() async {
     try {
@@ -57,9 +60,35 @@ class NotificationService {
       // Check if app was opened from a terminated state by tapping notification
       _checkInitialMessage();
 
+      _isInitialized = true;
       debugPrint('NotificationService initialized successfully');
     } catch (e) {
       debugPrint('Error initializing NotificationService: $e');
+      _isInitialized = false;
+    }
+  }
+
+  /// Retry getting FCM token (useful for iOS when APNS token is delayed)
+  Future<String?> retryGetToken() async {
+    try {
+      if (Platform.isIOS) {
+        // Wait for APNS token
+        for (int i = 0; i < 3; i++) {
+          final apnsToken = await _firebaseMessaging.getAPNSToken();
+          if (apnsToken != null) {
+            debugPrint('APNS Token received on attempt ${i + 1}');
+            break;
+          }
+          await Future.delayed(const Duration(seconds: 2));
+        }
+      }
+
+      _fcmToken = await _firebaseMessaging.getToken();
+      debugPrint('FCM Token retrieved: $_fcmToken');
+      return _fcmToken;
+    } catch (e) {
+      debugPrint('Error retrying FCM token: $e');
+      return null;
     }
   }
 
@@ -131,6 +160,27 @@ class NotificationService {
   /// Get FCM token for this device
   Future<void> _getFCMToken() async {
     try {
+      // For iOS, we need to get APNS token first
+      if (Platform.isIOS) {
+        // Request APNS token
+        final apnsToken = await _firebaseMessaging.getAPNSToken();
+        if (apnsToken != null) {
+          debugPrint('APNS Token received: $apnsToken');
+        } else {
+          debugPrint('APNS Token is null, waiting...');
+          // Wait a bit and try again
+          await Future.delayed(const Duration(seconds: 2));
+          final retryToken = await _firebaseMessaging.getAPNSToken();
+          if (retryToken != null) {
+            debugPrint('APNS Token received on retry: $retryToken');
+          } else {
+            debugPrint('APNS Token still null after retry. FCM token may not be available yet.');
+            // Continue anyway, token will be available later
+          }
+        }
+      }
+
+      // Get FCM token
       _fcmToken = await _firebaseMessaging.getToken();
       debugPrint('FCM Token: $_fcmToken');
 
@@ -138,6 +188,7 @@ class NotificationService {
       // You can save it to Firestore associated with the user
     } catch (e) {
       debugPrint('Error getting FCM token: $e');
+      // Don't throw error, token will be available on retry or refresh
     }
   }
 
